@@ -1,0 +1,254 @@
+{
+    "editor.fontSize": 14,
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 10000,
+    "workbench.editor.empty.hint": "hidden",
+    "editor.unicodeHighlight.allowedCharacters": {
+        "〔": true,
+        "〕": true
+    },
+    "workbench.colorTheme": "Dark Modern",
+    "workbench.activityBar.location": "bottom",
+    "git.confirmSync": false,
+    "git.enableSmartCommit": true,
+    "remoteHub.commitDirectlyWarning": "off",
+    "explorer.fileNesting.patterns": {
+        "*.ts": "${capture}.js",
+        "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+        "*.jsx": "${capture}.js",
+        "*.tsx": "${capture}.ts",
+        "tsconfig.json": "tsconfig.*.json",
+        "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb, bun.lock",
+        "*.sqlite": "${capture}.${extname}-*",
+        "*.db": "${capture}.${extname}-*",
+        "*.sqlite3": "${capture}.${extname}-*",
+        "*.db3": "${capture}.${extname}-*",
+        "*.sdb": "${capture}.${extname}-*",
+        "*.s3db": "${capture}.${extname}-*"
+    },
+    "github.copilot.nextEditSuggestions.eagerness": "auto",
+    "explorer.confirmDelete": false,
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false,
+        "python": true
+    },
+    "[plaintext]": {
+        
+        "editor.unicodeHighlight.ambiguousCharacters": false,
+        "editor.unicodeHighlight.invisibleCharacters": false
+    },
+    "js/ts.tsserver.node.path": "C:\\Program Files\\nodejs\\node.exe",
+    "debug.javascript.defaultRuntimeExecutable": {
+
+
+        "pwa-node": "node"
+    },
+    "debug.javascript.terminalOptions": {
+
+    },
+    "jsts-chat-features.skills.enabled": true,
+    "npm.packageManager": "npm",
+    "npm.scriptRunner": "node",
+    "code-runner.executorMap": {
+        
+        "javascript": "node",
+        "java": "cd $dir && javac $fileName && java $fileNameWithoutExt",
+        "c": "cd $dir && gcc $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+        "zig": "zig run",
+        "cpp": "cd $dir && g++ $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+        "objective-c": "cd $dir && gcc -framework Cocoa $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+        "php": "php",
+        "python": "python -u",
+        "perl": "perl",
+        "perl6": "perl6",
+        "ruby": "ruby",
+        "go": "go run",
+        "lua": "lua",
+        "groovy": "groovy",
+        "powershell": "powershell -ExecutionPolicy ByPass -File",
+        "bat": "cmd /c",
+        "shellscript": "bash",
+        "fsharp": "fsi",
+        "csharp": "scriptcs",
+        "vbscript": "cscript //Nologo",
+        "typescript": "node",
+        "coffeescript": "coffee",
+        "scala": "scala",
+        "swift": "swift",
+        "julia": "julia",
+        "crystal": "crystal",
+        "ocaml": "ocaml",
+        "r": "Rscript",
+        "applescript": "osascript",
+        "clojure": "lein exec",
+        "haxe": "haxe --cwd $dirWithoutTrailingSlash --run $fileNameWithoutExt",
+        "rust": "cd $dir && rustc $fileName && $dir$fileNameWithoutExt",
+        "racket": "racket",
+        "scheme": "csi -script",
+        "ahk": "autohotkey",
+        "autoit": "autoit3",
+        "dart": "dart",
+        "pascal": "cd $dir && fpc $fileName && $dir$fileNameWithoutExt",
+        "d": "cd $dir && dmd $fileName && $dir$fileNameWithoutExt",
+        "haskell": "runghc",
+        "nim": "nim compile --verbosity:0 --hints:off --run",
+        "lisp": "sbcl --script",
+        "kit": "kitc --run",
+        "v": "v run",
+        "sass": "sass --style expanded",
+        "scss": "scss --style expanded",
+        "less": "cd $dir && lessc $fileName $fileNameWithoutExt.css",
+        "FortranFreeForm": "cd $dir && gfortran $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+        "fortran-modern": "cd $dir && gfortran $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+        "fortran_fixed-form": "cd $dir && gfortran $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+        "fortran": "cd $dir && gfortran $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+        "sml": "cd $dir && sml $fileName",
+        "mojo": "mojo run",
+        "erlang": "escript",
+        "spwn": "spwn build",
+        "pkl": "cd $dir && pkl eval -f yaml $fileName -o $fileNameWithoutExt.yaml",
+        "gleam": "gleam run -m $fileNameWithoutExt"
+    },
+    "editor.unicodeHighlight.nonBasicASCII": false,
+    "explorer.compactFolders": false,
+    "files.associations": {
+        "*.python": "python"
+    },
+    "background.editorBackgrounds": [],
+    "background.backgroundSize": [
+        "Contain",
+        "Cover",
+        "Cover",
+        "Cover"
+    ],
+    "background.windowBackgrounds": [
+        "c:/Users/Ich/Pictures/GVmtQRbX0AAcXlN.jpg"
+    ],
+    "background.autoInstall": false,
+    "workbench.iconTheme": "material-icon-theme",
+    "editor.fontFamily": "Fira Code, Fondamento, JetBrains Mono, monospace",
+    "editor.fontLigatures": true,
+    "editor.lineHeight": 1.6, // Let your code breathe!
+    "editor.smoothScrolling": true,
+    "terminal.integrated.smoothScrolling": true,
+    "autoDocstring.docstringFormat": "numpy",
+    "autoDocstring.includeName": true,
+    "material-icon-theme.files.color": "#26a69a",
+    "material-icon-theme.activeIconPack": "roblox",
+    "errorLens.fontFamily": "Fira Code, Fondamento",
+    "debug.console.fontFamily": "Fira Code",
+    "editor.inlayHints.fontFamily": "Fira Code",
+    "editor.inlineSuggest.fontFamily": "default",
+    "editor.codeLensFontFamily": "Fira Code",
+    "terminal.integrated.fontFamily": "Fira Code, Montserrat, JetBrains Mono, monospace",
+    "terminal.integrated.fontLigatures.enabled": true,
+    "terminal.integrated.suggest.inlineSuggestion": "alwaysOnTopExceptExactMatch",
+    "terminal.integrated.suggest.quickSuggestions": {
+        "commands": "on",
+        "arguments": "on",
+        "unknown": "off"
+    },
+    "editor.inlineSuggest.showToolbar": "always",
+    "material-icon-theme.folders.theme": "specific",
+    "material-icon-theme.hidesExplorerArrows": true,
+    "better-comments.tags": [
+    {
+        "tag": "!",
+        "color": "#FF2D00",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": false
+    },
+    {
+        "tag": "?",
+        "color": "#3498DB",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": false
+    },
+    {
+        "tag": "//",
+        "color": "#474747",
+        "strikethrough": true,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": false
+    },
+    {
+        "tag": "todo",
+        "color": "#FF8C00",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": false
+    },
+    {
+        "tag": "*",
+        "color": "#98C379",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": false,
+        "italic": false
+    },
+    {
+        "tag": "DEPREC",
+        "color": "#565656",
+        "strikethrough": false,
+        "underline": false,
+        "backgroundColor": "transparent",
+        "bold": true,
+        "italic": true
+    }
+    ],
+    "editor.colorDecorators": true,
+    "editor.defaultColorDecorators": "always",
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "Schüler_DB ",
+            "database": "${workspaceFolder:Schule}/src/databases/schüler.db"
+        },
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "Lehrer_DB",
+            "database": "${workspaceFolder:Schule}/src/databases/lehrer.db"
+        }
+    ],
+    "sqltools.useNodeRuntime": true,
+    "editor.minimap.side": "left",
+    "editor.bracketPairColorization.enabled": false,
+    "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+    "editor.guides.highlightActiveBracketPair": true,
+    "explorer.copyPathSeparator": "\\",
+    "explorer.copyRelativePathSeparator": "\\",
+    "explorer.sortOrder": "filesFirst",
+    "workbench.experimental.modernUI": true,
+    "discord.detailsEditing": "Editing SCP-{total_lines} \"{file_name_no_extension}\"",
+    "discord.detailsDebugging": "Debugging SCP-{total_lines} \"{file_name_no_extension}\" ",
+    "discord.lowerDetailsDebugging": "Class: {file_extension_name}",
+    "discord.lowerDetailsEditing": "Class: {file_extension_name}",
+    "python.analysis.indexing": false,
+    "editor.minimap.enabled": false,
+    "files.watcherExclude": {
+        "**/__pycache__": true
+    }
+}
+//    "tag": "*",
+//    "color": "#98C379",
+//    "strikethrough": false,
+//    "underline": false,
+//    "backgroundColor": "transparent",
+//    "bold": false,
+//    "italic": false

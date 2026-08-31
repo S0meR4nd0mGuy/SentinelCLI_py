@@ -1,0 +1,14 @@
+[project]
+name = "sentinelclipy"
+version = "1.0.0"
+description = "A CLI cybersecurity toolkit for authorized defensive workflows."
+requires-python = ">=3.9"
+readme = "README.md"
+dependencies = []
+
+[project.optional-dependencies]
+crypto = ["cryptography>=42"]
+
+[project.scripts]
+sentinelclipy = "sentinelclipy:main"
+sentinelcli = "sentinelclipy:main"
