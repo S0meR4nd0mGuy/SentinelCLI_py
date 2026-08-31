@@ -11,9 +11,12 @@ python -m pip install -e ".[crypto]"
 After installation you can run either:
 
 ```powershell
-sentinelclipy --help
-python .\sentinelclipy.py --help
+sentinelcli --help
+sentinelcli repl
+python .\sentinelcli.py --help
+python .\sentinelcli.py repl
 ```
+(The first 2 commands require a .exe file. For note how to do that, check the bottom of the README file.)
 
 ## Crypto Method Groups
 
@@ -72,7 +75,7 @@ These use keys/passphrases. `modern.fernet`, `modern.aesgcm`/`modern.aes256gcm`,
 Any of `aesgcm`/`aes256gcm`/`aes256cbc`/`aes256ctrhmac`/`aes256cbchmac`/`chacha20poly1305` accepts either a raw passphrase (hashed down to a 256-bit key) or a proper 32-byte key. Generate one with:
 
 ```powershell
-sentinelclipy crypto aes256-key
+sentinelcli crypto aes256-key
 ```
 
 This is the AES-256 analogue of `crypto fernet-key`: a random, cryptographically strong 32-byte key, base64url-encoded, ready to pass to `--key` for any of the AES-256/ChaCha20 methods above.
@@ -108,26 +111,26 @@ Also available in the `oneway` group, but **not** cryptographic hashes — fast 
 ## Examples
 
 ```powershell
-sentinelclipy crypto encrypt --method general.base64 --text "hello"
-sentinelclipy crypto decrypt --method general.base64 --text "aGVsbG8="
-sentinelclipy crypto encrypt --method classical.caesar --shift 7 --text "hello"
-sentinelclipy crypto decrypt --method classical.caesar --shift 7 --text "olssv"
-sentinelclipy crypto encrypt --method classical.railfence --rails 3 --text "attackatdawn"
-sentinelclipy crypto encrypt --method classical.beaufort --key "lemon" --text "attackatdawn"
-sentinelclipy crypto encrypt --method modern.aes256gcm --key "passphrase" --text "secret"
-sentinelclipy crypto decrypt --method modern.aes256gcm --key "passphrase" --text "PASTE_TOKEN"
-sentinelclipy crypto encrypt --method modern.aes256cbc --key "passphrase" --text "secret"
-sentinelclipy crypto decrypt --method modern.aes256cbc --key "passphrase" --text "PASTE_TOKEN"
-sentinelclipy crypto encrypt --method modern.aes256ctrhmac --key "passphrase" --text "secret"
-sentinelclipy crypto decrypt --method modern.aes256ctrhmac --key "passphrase" --text "PASTE_TOKEN"
-sentinelclipy crypto kdf --passphrase "passphrase" --kdf pbkdf2-sha256 --length 32 --json
-sentinelclipy crypto compare --left "digest-a" --right "digest-a"
-sentinelclipy crypto fernet-key
-sentinelclipy crypto aes256-key
-sentinelclipy crypto hash --algorithm oneway.sha256 --text "message"
-sentinelclipy crypto hash --algorithm oneway.crc32 --text "message"
-sentinelclipy crypto hmac --algorithm oneway.sha512 --key "shared-key" --text "message"
-sentinelclipy crypto identify --text "aGVsbG8="
+sentinelcli crypto encrypt --method general.base64 --text "hello"
+sentinelcli crypto decrypt --method general.base64 --text "aGVsbG8="
+sentinelcli crypto encrypt --method classical.caesar --shift 7 --text "hello"
+sentinelcli crypto decrypt --method classical.caesar --shift 7 --text "olssv"
+sentinelcli crypto encrypt --method classical.railfence --rails 3 --text "attackatdawn"
+sentinelcli crypto encrypt --method classical.beaufort --key "lemon" --text "attackatdawn"
+sentinelcli crypto encrypt --method modern.aes256gcm --key "passphrase" --text "secret"
+sentinelcli crypto decrypt --method modern.aes256gcm --key "passphrase" --text "PASTE_TOKEN"
+sentinelcli crypto encrypt --method modern.aes256cbc --key "passphrase" --text "secret"
+sentinelcli crypto decrypt --method modern.aes256cbc --key "passphrase" --text "PASTE_TOKEN"
+sentinelcli crypto encrypt --method modern.aes256ctrhmac --key "passphrase" --text "secret"
+sentinelcli crypto decrypt --method modern.aes256ctrhmac --key "passphrase" --text "PASTE_TOKEN"
+sentinelcli crypto kdf --passphrase "passphrase" --kdf pbkdf2-sha256 --length 32 --json
+sentinelcli crypto compare --left "digest-a" --right "digest-a"
+sentinelcli crypto fernet-key
+sentinelcli crypto aes256-key
+sentinelcli crypto hash --algorithm oneway.sha256 --text "message"
+sentinelcli crypto hash --algorithm oneway.crc32 --text "message"
+sentinelcli crypto hmac --algorithm oneway.sha512 --key "shared-key" --text "message"
+sentinelcli crypto identify --text "aGVsbG8="
 ```
 
 ## Brute-Forcing & Dictionary Attacks
@@ -137,10 +140,10 @@ sentinelclipy crypto identify --text "aGVsbG8="
 **No wordlist needed** — full keyspace search, since these key spaces are small:
 
 ```powershell
-sentinelclipy crypto brute-force --method all --text "khoor zruog" --top 5
-sentinelclipy crypto brute-force --method classical.affine --text "..." --top 5
-sentinelclipy crypto brute-force --method classical.railfence --max-rails 12 --text "..." --top 5
-sentinelclipy crypto brute-force --method modern.xor --text "..." --top 5
+sentinelcli crypto brute-force --method all --text "khoor zruog" --top 5
+sentinelcli crypto brute-force --method classical.affine --text "..." --top 5
+sentinelcli crypto brute-force --method classical.railfence --max-rails 12 --text "..." --top 5
+sentinelcli crypto brute-force --method modern.xor --text "..." --top 5
 ```
 
 `modern.xor` without a wordlist tries every single-byte key (0x00–0xFF). `classical.vigenere` and `classical.beaufort` aren't included in `--method all` because guessing a multi-character key exhaustively isn't bounded the same way.
@@ -148,13 +151,13 @@ sentinelclipy crypto brute-force --method modern.xor --text "..." --top 5
 **Dictionary attack (`--wordlist`)** — required for authenticated modern encryption, since AES-256/ChaCha20 keys can't be brute-forced by keyspace at all (2^256 possibilities). A wordlist attack only works if the real passphrase is actually in your list — it audits weak/guessable passphrases, it does not break real AES-256 security:
 
 ```powershell
-sentinelclipy crypto brute-force --method modern.aes256gcm --wordlist common-passwords.txt --text "PASTE_TOKEN" --top 5
-sentinelclipy crypto brute-force --method modern.aes256cbc --wordlist common-passwords.txt --text "PASTE_TOKEN" --top 5
-sentinelclipy crypto brute-force --method modern.aes256ctrhmac --wordlist common-passwords.txt --text "PASTE_TOKEN" --top 5
-sentinelclipy crypto brute-force --method modern.aes256cbchmac --wordlist common-passwords.txt --text "PASTE_TOKEN" --top 5
-sentinelclipy crypto brute-force --method modern.chacha20poly1305 --wordlist common-passwords.txt --text "PASTE_TOKEN" --top 5
-sentinelclipy crypto brute-force --method modern.fernet --wordlist candidate-keys.txt --text "PASTE_TOKEN" --top 5
-sentinelclipy crypto brute-force --method modern.xor --wordlist common-passwords.txt --text "..." --top 5
+sentinelcli crypto brute-force --method modern.aes256gcm --wordlist common-passwords.txt --text "PASTE_TOKEN" --top 5
+sentinelcli crypto brute-force --method modern.aes256cbc --wordlist common-passwords.txt --text "PASTE_TOKEN" --top 5
+sentinelcli crypto brute-force --method modern.aes256ctrhmac --wordlist common-passwords.txt --text "PASTE_TOKEN" --top 5
+sentinelcli crypto brute-force --method modern.aes256cbchmac --wordlist common-passwords.txt --text "PASTE_TOKEN" --top 5
+sentinelcli crypto brute-force --method modern.chacha20poly1305 --wordlist common-passwords.txt --text "PASTE_TOKEN" --top 5
+sentinelcli crypto brute-force --method modern.fernet --wordlist candidate-keys.txt --text "PASTE_TOKEN" --top 5
+sentinelcli crypto brute-force --method modern.xor --wordlist common-passwords.txt --text "..." --top 5
 ```
 
 The wordlist is a plain text file, one candidate key/passphrase per line. For `aesgcm`/`aes256gcm`/`aes256ctrhmac`/`aes256cbchmac`/`chacha20poly1305`/`fernet`, a successful decrypt is cryptographically authenticated (the AEAD tag, HMAC, or Fernet signature verified), so a match is reported at score `999` and is guaranteed correct — not just "probably English." `aes256cbc` has no built-in authentication, so matches are still ranked only by the English-likeness heuristic; a wrong key can occasionally produce plausible-looking padding, so double-check the top result.
@@ -166,7 +169,7 @@ Use `--contains "some known phrase"` to filter candidates, and `--max-attempts` 
 Start the interactive mode with:
 
 ```powershell
-sentinelclipy repl
+sentinelcli repl
 ```
 
 On startup it prints a numbered module menu:
@@ -199,19 +202,19 @@ Inside guided crypto mode, the REPL asks for the action, method, input source (`
 ## Other Modules
 
 ```powershell
-sentinelclipy ports 127.0.0.1 --ports common --timeout 0.25
-sentinelclipy secrets . --hidden --json
-sentinelclipy jwt --text "HEADER.PAYLOAD.SIGNATURE" --json
-sentinelclipy url --text "https://example.com/login?token=abc"
-sentinelclipy ip 127.0.0.1 --json
-sentinelclipy file-inspect .\sentinelclipy.py --hashes sha256,crc32 --indicators
-sentinelclipy password generate --length 32 --count 3
-sentinelclipy password audit "Password123!" --json
-sentinelclipy headers https://example.com
-sentinelclipy tls example.com
-sentinelclipy dns example.com
-sentinelclipy entropy .\sentinelclipy.py
-sentinelclipy repl
+sentinelcli ports 127.0.0.1 --ports common --timeout 0.25
+sentinelcli secrets . --hidden --json
+sentinelcli jwt --text "HEADER.PAYLOAD.SIGNATURE" --json
+sentinelcli url --text "https://example.com/login?token=abc"
+sentinelcli ip 127.0.0.1 --json
+sentinelcli file-inspect .\sentinelcli.py --hashes sha256,crc32 --indicators
+sentinelcli password generate --length 32 --count 3
+sentinelcli password audit "Password123!" --json
+sentinelcli headers https://example.com
+sentinelcli tls example.com
+sentinelcli dns example.com
+sentinelcli entropy .\sentinelcli.py
+sentinelcli repl
 ```
 
 Only run network checks against systems you own or have explicit permission to test.
@@ -223,5 +226,5 @@ python -m pip install pyinstaller
 ```
 
 ```sh
-pyinstaller --onefile --name sentinelcli .\sentinelclipy.py
+pyinstaller --onefile --name sentinelcli .\sentinelcli.py
 ```
