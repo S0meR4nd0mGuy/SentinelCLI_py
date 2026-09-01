@@ -22,7 +22,7 @@ import math
 import mimetypes
 import os
 import re
-import secrets
+import secrets as _stdlib_secrets
 import shlex
 import socket
 import ssl
@@ -94,21 +94,34 @@ DEFAULT_COMMON_PORTS = [
 
 __all__ = [
     "ToolkitError",
+    "VERSION",
+    "__version__",
     "crypto",
     "dns",
     "entropy",
+    "entropy_tools",
     "file_hash",
     "file_inspect",
     "headers",
     "ip",
     "jwt",
+    "network",
+    "files",
+    "auth",
+    "utils",
     "password",
     "ports",
     "secrets",
     "timestamp",
     "tls",
     "url",
+    "build_parser",
+    "main",
+    "decode_jwt_token",
+    "validate_jwt_result",
 ]
+
+__version__ = VERSION
 
 SECRET_PATTERNS = {
     "AWS Access Key": r"\b(AKIA|ASIA)[0-9A-Z]{16}\b",
@@ -1023,7 +1036,7 @@ def modern_encrypt(text: str, method: str, key: str, output_encoding: str) -> st
         return Fernet(key.encode("ascii")).encrypt(text.encode("utf-8")).decode("ascii")
     if method in {"aesgcm", "aes256gcm", "chacha20poly1305"}:
         AESGCM, ChaCha20Poly1305 = require_hazmat()
-        nonce = secrets.token_bytes(12)
+        nonce = _stdlib_secrets.token_bytes(12)
         key_bytes = derive_32_byte_key(key)
         cipher = ChaCha20Poly1305(key_bytes) if method == "chacha20poly1305" else AESGCM(key_bytes)
         return encode_data(nonce + cipher.encrypt(nonce, text.encode("utf-8"), None), "general.base64url")
@@ -1032,7 +1045,7 @@ def modern_encrypt(text: str, method: str, key: str, output_encoding: str) -> st
             raise ToolkitError("AES-256-CBC requires --key. Generate one with: crypto aes256-key")
         Cipher, algorithms, modes, sym_padding = require_cbc()
         key_bytes = derive_32_byte_key(key)
-        iv = secrets.token_bytes(16)
+        iv = _stdlib_secrets.token_bytes(16)
         padder = sym_padding.PKCS7(128).padder()
         padded = padder.update(text.encode("utf-8")) + padder.finalize()
         encryptor = Cipher(algorithms.AES(key_bytes), modes.CBC(iv)).encryptor()
@@ -1042,7 +1055,7 @@ def modern_encrypt(text: str, method: str, key: str, output_encoding: str) -> st
         Cipher, algorithms, modes, _ = require_cbc()
         material = derive_key_material(key, b"sentinelclipy/aes256ctrhmac")
         enc_key, mac_key = material[:32], material[32:]
-        nonce = secrets.token_bytes(16)
+        nonce = _stdlib_secrets.token_bytes(16)
         encryptor = Cipher(algorithms.AES(enc_key), modes.CTR(nonce)).encryptor()
         ciphertext = encryptor.update(text.encode("utf-8")) + encryptor.finalize()
         tag = calculate_etm_tag(mac_key, b"aes256ctrhmac-v1", nonce, ciphertext)
@@ -1051,7 +1064,7 @@ def modern_encrypt(text: str, method: str, key: str, output_encoding: str) -> st
         Cipher, algorithms, modes, sym_padding = require_cbc()
         material = derive_key_material(key, b"sentinelclipy/aes256cbchmac")
         enc_key, mac_key = material[:32], material[32:]
-        iv = secrets.token_bytes(16)
+        iv = _stdlib_secrets.token_bytes(16)
         padder = sym_padding.PKCS7(128).padder()
         padded = padder.update(text.encode("utf-8")) + padder.finalize()
         encryptor = Cipher(algorithms.AES(enc_key), modes.CBC(iv)).encryptor()
@@ -1341,7 +1354,7 @@ def crypto_hmac(args: argparse.Namespace) -> int:
 
 
 def crypto_random(args: argparse.Namespace) -> int:
-    token = secrets.token_urlsafe(args.bytes) if args.urlsafe else secrets.token_hex(args.bytes)
+    token = _stdlib_secrets.token_urlsafe(args.bytes) if args.urlsafe else _stdlib_secrets.token_hex(args.bytes)
     print(token)
     return 0
 
@@ -1355,12 +1368,12 @@ def crypto_fernet_key(_: argparse.Namespace) -> int:
 def crypto_aes256_key(_: argparse.Namespace) -> int:
     # 32 random bytes, base64url-encoded so it round-trips cleanly through
     # derive_32_byte_key() and is safe to paste on a command line or into a file.
-    print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("ascii"))
+    print(base64.urlsafe_b64encode(_stdlib_secrets.token_bytes(32)).decode("ascii"))
     return 0
 
 
 def crypto_kdf(args: argparse.Namespace) -> int:
-    salt = decode_data(args.salt, args.salt_encoding) if args.salt else secrets.token_bytes(args.salt_bytes)
+    salt = decode_data(args.salt, args.salt_encoding) if args.salt else _stdlib_secrets.token_bytes(args.salt_bytes)
     key = derive_password_key(args.passphrase, salt, args.kdf, args.length, args.rounds)
     result = {
         "kdf": args.kdf,
@@ -1511,6 +1524,25 @@ def jwt_timestamp(value: object) -> str | None:
         return None
 
 
+def validate_jwt_result(result: dict[str, object]) -> dict[str, object]:
+    required = {"header", "payload", "signature_present", "timeline", "warnings", "parts"}
+    missing = sorted(key for key in required if key not in result)
+    if missing:
+        raise ToolkitError(f"JWT result is missing required fields: {', '.join(missing)}")
+    if not isinstance(result["header"], dict):
+        raise ToolkitError("JWT header must be a JSON object.")
+    if not isinstance(result["payload"], dict):
+        raise ToolkitError("JWT payload must be a JSON object.")
+    if not isinstance(result["timeline"], dict):
+        raise ToolkitError("JWT timeline must be a dictionary.")
+    if not isinstance(result["warnings"], list):
+        raise ToolkitError("JWT warnings must be a list.")
+    parts = result["parts"]
+    if not isinstance(parts, list) or len(parts) != 3 or not all(isinstance(part, str) for part in parts):
+        raise ToolkitError("JWT parts must be a three-element list of strings.")
+    return result
+
+
 def decode_jwt_token(token: str) -> dict[str, object]:
     parts = token.strip().split(".")
     if len(parts) != 3:
@@ -1520,7 +1552,7 @@ def decode_jwt_token(token: str) -> dict[str, object]:
     if not isinstance(header, dict) or not isinstance(payload, dict):
         raise ToolkitError("JWT header and payload must decode to JSON objects.")
     now = datetime.now(timezone.utc).timestamp()
-    warnings = []
+    warnings: list[str] = []
     alg = str(header.get("alg", "")).lower()
     if alg in {"", "none"}:
         warnings.append("JWT uses no signing algorithm; never trust it without external validation.")
@@ -1539,22 +1571,29 @@ def decode_jwt_token(token: str) -> dict[str, object]:
         for claim in ("iat", "nbf", "exp")
         if claim in payload
     }
-    return {
+    result = {
         "header": header,
         "payload": payload,
         "signature_present": bool(parts[2]),
         "timeline": timeline,
         "warnings": warnings,
+        "parts": parts,
     }
+    return validate_jwt_result(result)
 
 
 def jwt_decode(args: argparse.Namespace) -> int:
     token = read_text_arg(args.text, args.file).strip()
-    result = decode_jwt_token(token)
+    result = validate_jwt_result(decode_jwt_token(token))
     output = getattr(args, "output", None)
     if output:
         write_or_print(json.dumps(result, indent=2, sort_keys=True), output)
         return 0
+    header = result["header"]
+    payload = result["payload"]
+    timeline = result["timeline"]
+    warnings = result["warnings"]
+    parts = result["parts"]
     if args.json:
         print_json(result)
     else:
@@ -1975,8 +2014,12 @@ def secrets_scan(args: argparse.Namespace) -> int:
     return 1 if findings and args.fail_on_findings else 0
 
 
-def file_hash(args: argparse.Namespace) -> int:
-    algorithm = args.algorithm.lower()
+def file_hash(value: argparse.Namespace | str | Path, algorithm: str | None = None) -> int | str:
+    if not isinstance(value, argparse.Namespace) and not hasattr(value, "file"):
+        return hash_file_value(value, algorithm or "sha256")
+    args = value
+    selected_algorithm = getattr(args, "algorithm", algorithm or "sha256")
+    algorithm = str(selected_algorithm).lower()
     if algorithm in CHECKSUM_METHODS:
         checksum_func = zlib.crc32 if algorithm == "crc32" else zlib.adler32
         checksum = 0
@@ -1986,7 +2029,7 @@ def file_hash(args: argparse.Namespace) -> int:
         print(f"{checksum & 0xFFFFFFFF:08x}  {args.file}")
         return 0
     if algorithm not in hashlib.algorithms_available:
-        raise ToolkitError(f"Unsupported hash algorithm: {args.algorithm}")
+        raise ToolkitError(f"Unsupported hash algorithm: {selected_algorithm}")
     digest = hashlib.new(algorithm)
     with open(args.file, "rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -2027,7 +2070,7 @@ def password_generate(args: argparse.Namespace) -> int:
     if not alphabet:
         raise ToolkitError("Enable at least one character class.")
     for _ in range(args.count):
-        print("".join(secrets.choice(alphabet) for _ in range(args.length)))
+        print("".join(_stdlib_secrets.choice(alphabet) for _ in range(args.length)))
     return 0
 
 
@@ -2334,22 +2377,25 @@ def find_embedded_indicators(data: bytes, limit: int) -> dict[str, list[str]]:
     return {"urls": urls, "ipv4": valid_ipv4s, "domains": domains}
 
 
-def file_inspect(args: argparse.Namespace) -> int:
+def file_inspect(value: argparse.Namespace | str | Path, hashes: str | Iterable[str] = "sha256", indicators: bool = False, scan_bytes: int = 1024 * 1024, indicator_limit: int = 20) -> int | dict[str, object]:
+    if not isinstance(value, argparse.Namespace) and not hasattr(value, "file"):
+        return inspect_file(value, hashes=hashes, indicators=indicators, scan_bytes=scan_bytes, indicator_limit=indicator_limit)
+    args = value
     result = inspect_file(
         args.file,
-        hashes=args.hashes,
-        indicators=args.indicators,
-        scan_bytes=args.scan_bytes,
-        indicator_limit=args.indicator_limit,
+        hashes=getattr(args, "hashes", hashes),
+        indicators=getattr(args, "indicators", indicators),
+        scan_bytes=getattr(args, "scan_bytes", scan_bytes),
+        indicator_limit=getattr(args, "indicator_limit", indicator_limit),
     )
-    if args.json:
+    if getattr(args, "json", False):
         print_json(result)
     else:
         print(f"{result['file']}")
         print(f"  size={result['size']} signature={result['signature']} mime={result['mime_guess'] or 'unknown'} entropy={result['entropy']}")
         for name, digest in result["hashes"].items():
             print(f"  {name}: {digest}")
-        if args.indicators:
+        if getattr(args, "indicators", False):
             indicators = result["indicators"]
             for kind in ["urls", "ipv4", "domains"]:
                 values = indicators.get(kind, [])
@@ -2452,7 +2498,7 @@ def generate_passwords(
         alphabet += "!@#$%^&*()-_=+[]{};:,.?/|"
     if not alphabet:
         raise ToolkitError("Enable at least one character class.")
-    return ["".join(secrets.choice(alphabet) for _ in range(length)) for _ in range(count)]
+    return ["".join(_stdlib_secrets.choice(alphabet) for _ in range(length)) for _ in range(count)]
 
 
 def audit_password(password: str) -> dict[str, object]:
@@ -2604,6 +2650,30 @@ def resolve_host(host: str) -> list[str]:
 
 
 class CryptoAPI:
+    def encode(self, data: str | bytes, method: str, key: str = "", **options: object) -> str:
+        if isinstance(data, str):
+            payload = data.encode("utf-8")
+        else:
+            payload = data
+        group, name = split_method(method)
+        if group == "general":
+            return encode_data(payload, name)
+        if group in {"modern", "classical"}:
+            return self.encrypt(data if isinstance(data, str) else data.decode("utf-8", errors="strict"), method, key, **options)
+        raise ToolkitError("Only general and reversible crypto methods support encode().")
+
+    def decode(self, text: str, method: str, key: str = "", **options: object) -> str | bytes:
+        group, name = split_method(method)
+        if group == "general":
+            value = decode_data(text, name)
+            if isinstance(value, bytes):
+                try:
+                    return value.decode("utf-8")
+                except UnicodeDecodeError:
+                    return value.decode("latin-1")
+            return str(value)
+        return self.decrypt(text, method, key, **options)
+
     def encrypt(self, text: str, method: str, key: str = "", **options: object) -> str:
         group, name = split_method(method)
         if group == "general":
@@ -2674,14 +2744,14 @@ class CryptoAPI:
         return hmac_digest(text, key, algorithm)
 
     def random(self, bytes: int = 32, urlsafe: bool = False) -> str:
-        return secrets.token_urlsafe(bytes) if urlsafe else secrets.token_hex(bytes)
+        return _stdlib_secrets.token_urlsafe(bytes) if urlsafe else _stdlib_secrets.token_hex(bytes)
 
     def fernet_key(self) -> str:
         Fernet = require_fernet()
         return Fernet.generate_key().decode("ascii")
 
     def aes256_key(self) -> str:
-        return base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("ascii")
+        return base64.urlsafe_b64encode(_stdlib_secrets.token_bytes(32)).decode("ascii")
 
     def kdf(
         self,
@@ -2694,7 +2764,7 @@ class CryptoAPI:
         output_encoding: str = "base64url",
         salt_bytes: int = 16,
     ) -> dict[str, object]:
-        salt_bytes_value = salt if isinstance(salt, bytes) else decode_data(salt, salt_encoding) if salt else secrets.token_bytes(salt_bytes)
+        salt_bytes_value = salt if isinstance(salt, bytes) else decode_data(salt, salt_encoding) if salt else _stdlib_secrets.token_bytes(salt_bytes)
         key = derive_password_key(passphrase, salt_bytes_value, kdf, length, rounds)
         return {"kdf": kdf, "length": length, "rounds": rounds, "salt": encode_data(salt_bytes_value, "general.base64url"), "key": encode_data(key, output_encoding)}
 
@@ -2805,15 +2875,63 @@ class TimestampAPI:
         return datetime.now(timezone.utc).isoformat()
 
 
+class NetworkAPI:
+    def scan(self, host: str, ports: str = "common", timeout: float = 0.5, workers: int = 100, banner: bool = False, show_closed: bool = False) -> list[dict[str, object]]:
+        return ports_api.scan(host, ports=ports, timeout=timeout, workers=workers, banner=banner, show_closed=show_closed)
+
+    def resolve(self, host: str) -> list[str]:
+        return dns.lookup(host)
+
+    def ip(self, address: str) -> dict[str, object]:
+        return ip.info(address)
+
+    def url(self, value: str) -> dict[str, object]:
+        return url.analyze(value)
+
+
+class FilesAPI:
+    def hash(self, file: str | Path, algorithm: str = "sha256") -> str:
+        return file_hash_api.hash(file, algorithm)
+
+    def inspect(self, file: str | Path, hashes: str | Iterable[str] = "sha256", indicators: bool = False, scan_bytes: int = 1024 * 1024, indicator_limit: int = 20) -> dict[str, object]:
+        return file_inspect_api.inspect(file, hashes=hashes, indicators=indicators, scan_bytes=scan_bytes, indicator_limit=indicator_limit)
+
+    def entropy(self, file: str | Path) -> float:
+        return entropy_tools.file(file)
+
+
+class AuthAPI:
+    def jwt(self, token: str) -> dict[str, object]:
+        return jwt.decode(token)
+
+    def password_audit(self, password: str) -> dict[str, object]:
+        return password_api.audit(password)
+
+
+class UtilsAPI:
+    def utc_timestamp(self) -> str:
+        return timestamp.utc()
+
+    def print_json(self, data: object) -> None:
+        print_json(data)
+
+    def decode_base64url_json(self, value: str) -> object:
+        return decode_base64url_json(value)
+
+
 crypto = CryptoAPI()
 ports = PortsAPI()
+ports_api = ports
 secrets_api = SecretsAPI()
+secrets = secrets_api
 secrets_module = secrets_api
 secrets_scan_api = secrets_api
 secrets_tools = secrets_api
 file_hash_api = FileHashAPI()
 entropy_api = EntropyAPI()
+entropy_tools = entropy_api
 password = PasswordAPI()
+password_api = password
 headers = HeadersAPI()
 tls = TlsAPI()
 dns = DnsAPI()
@@ -2823,6 +2941,10 @@ ip = IpAPI()
 file_inspect_api = FileInspectAPI()
 file_inspect_module = file_inspect_api
 timestamp = TimestampAPI()
+network = NetworkAPI()
+files = FilesAPI()
+auth = AuthAPI()
+utils = UtilsAPI()
 
 
 class SentinelRepl(cmd.Cmd):

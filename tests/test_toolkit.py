@@ -116,6 +116,21 @@ class ToolkitTests(unittest.TestCase):
             self.assertEqual(s.jwt_decode(args), 0)
         self.assertIn("JWT uses no signing algorithm", out.getvalue())
 
+    def test_public_module_api_and_jwt_structure(self):
+        self.assertTrue(hasattr(s, "crypto"))
+        self.assertTrue(hasattr(s, "jwt"))
+        self.assertTrue(hasattr(s, "file_hash"))
+        self.assertTrue(hasattr(s, "file_inspect"))
+        self.assertTrue(hasattr(s, "entropy"))
+        self.assertTrue(hasattr(s, "secrets"))
+        self.assertEqual(s.crypto.encode("hello", "general.base64"), "aGVsbG8=")
+        self.assertEqual(s.crypto.decode("aGVsbG8=", "general.base64"), "hello")
+
+        token = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjMifQ."
+        result = s.decode_jwt_token(token)
+        self.assertEqual(set(result.keys()), {"header", "payload", "signature_present", "timeline", "warnings", "parts"})
+        self.assertEqual(result["parts"], ["eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0", "eyJzdWIiOiIxMjMifQ", ""])
+
     def test_url_and_ip_triage(self):
         result = s.analyze_url_value("http://127.0.0.1/login?token=abc")
         self.assertIn("plain HTTP URL", result["warnings"])
