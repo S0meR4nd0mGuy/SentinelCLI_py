@@ -9,3 +9,6 @@ __pycache__/
 *.pyo
 *.pyd
 .vscode/
+.venv/
+.pytest_cache/
+pytest_out.txt
