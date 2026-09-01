@@ -254,7 +254,3 @@ The generated binary will appear in the `dist` directory.
 ## Release note
 
 This project is intended as a release-ready defensive toolkit with a clean CLI surface and a Python module API for automation. It is best suited for local security workflow support, validation, triage, and developer-oriented defensive tooling.
-
-## License
-
-This project is provided as-is for authorized defensive use. Please review the repository license before publication or redistribution.
