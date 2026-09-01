@@ -104,6 +104,14 @@ class ToolkitTests(unittest.TestCase):
                 repl.default("10")
         self.assertIn('"verdict"', out.getvalue())
 
+    def test_repl_menu_uses_ansi_colors_for_tty(self):
+        repl = s.SentinelRepl(s.build_parser())
+        with mock.patch.object(s.sys.stdout, "isatty", return_value=True):
+            with mock.patch("builtins.print") as print_mock:
+                repl.print_menu()
+        rendered = "\n".join(call.args[0] for call in print_mock.call_args_list)
+        self.assertIn("\x1b[", rendered)
+
     def test_parse_ports(self):
         self.assertEqual(s.parse_ports("22,80-82"), [22, 80, 81, 82])
 

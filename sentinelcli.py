@@ -213,6 +213,20 @@ def eprint(message: str) -> None:
     print(message, file=sys.stderr)
 
 
+def supports_color(stream: object | None = None) -> bool:
+    stream = stream or sys.stdout
+    try:
+        return bool(getattr(stream, "isatty", lambda: False)())
+    except Exception:
+        return False
+
+
+def ansi(code: str, text: str, *, stream: object | None = None) -> str:
+    if not supports_color(stream):
+        return text
+    return f"\033[{code}m{text}\033[0m"
+
+
 def print_json(data: object) -> None:
     print(json.dumps(data, indent=2, sort_keys=True))
 
@@ -2979,10 +2993,14 @@ class SentinelRepl(cmd.Cmd):
         self.print_menu()
 
     def print_menu(self) -> None:
-        print("\nModules:")
+        header = ansi("1;36", "\nModules:")
+        print(header)
         for index, (name, description) in enumerate(self.MODULES, start=1):
-            print(f"  {index}. {name:<10} {description}")
-        print("\nEnter a number to start a guided flow, or type a full command, e.g. crypto methods --group modern")
+            name_label = ansi("1;32", f"{name:<10}")
+            description_label = ansi("0;37", description)
+            print(f"  {index}. {name_label} {description_label}")
+        footer = ansi("1;33", "\nEnter a number to start a guided flow, or type a full command, e.g. crypto methods --group modern")
+        print(footer)
 
     def do_menu(self, _: str) -> None:
         """Show the module menu."""
@@ -3092,15 +3110,16 @@ class SentinelRepl(cmd.Cmd):
 
     def ask(self, label: str, default: str | None = None, required: bool = False) -> str:
         suffix = f" [{default}]" if default is not None else ""
+        prompt = ansi("1;36", f"{label}{suffix}") + ansi("0;37", ": ")
         while True:
-            value = input(f"{label}{suffix}: ").strip()
+            value = input(f"{prompt}").strip()
             if value:
                 return value
             if default is not None:
                 return default
             if not required:
                 return ""
-            print("This value is required.")
+            print(ansi("1;31", "This value is required."))
 
     def ask_bool(self, label: str, default: bool = False) -> bool:
         default_text = "Y/n" if default else "y/N"
