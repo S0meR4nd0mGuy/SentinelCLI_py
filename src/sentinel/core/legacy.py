@@ -26,6 +26,7 @@ from ..modules.utilities import operations as _utilities_operations
 from ..modules.utilities.operations import *
 from . import common as _common
 from .common import *
+from .parser import build_parser
 
 _implementation_namespace = globals()
 for _module in (
@@ -47,9 +48,6 @@ for _module in (_common, _auth_operations, _crypto_operations, _dns_operations, 
 		if not _name.startswith("__")
 	})
 
-from .guided_repl import SentinelRepl
-from .parser import add_text_file_args, build_parser
-from .launcher import _run_operator_repl, _run_textual_app, main
 
 crypto = CryptoAPI()
 ports = PortsAPI()
@@ -79,3 +77,26 @@ auth = AuthAPI()
 utils = UtilsAPI()
 
 
+def _run_textual_app(parser: argparse.ArgumentParser) -> int:
+    from sentinel.app import SentinelApp
+
+    SentinelApp(parser).run()
+    return 0
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if not hasattr(args, "func"):
+        parser.print_help()
+        return 0
+    try:
+        return int(args.func(args) or 0)
+    except KeyboardInterrupt:
+        eprint("Interrupted.")
+        return 130
+    except ToolkitError as exc:
+        eprint(f"error: {exc}")
+        return 2
+    except OSError as exc:
+        eprint(f"error: {exc}")
+        return 2
