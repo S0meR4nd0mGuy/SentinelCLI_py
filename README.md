@@ -29,10 +29,10 @@ Install the package in editable mode:
 python -m pip install -e .
 ```
 
-If you want the optional crypto dependencies as well:
+Install the dependencies:
 
 ```powershell
-python -m pip install -e ".[crypto]"
+python -m pip install -r requirements.txt
 ```
 
 You can then run the CLI commands:
