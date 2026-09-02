@@ -1,1 +1,0 @@
-"""Secret scanning migration package."""

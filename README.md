@@ -15,6 +15,10 @@ It is intended for authorized use in security testing, internal validation, rese
 - HTTP security header evaluation
 - TLS endpoint inspection
 - DNS lookup and host analysis
+- Network diagnostics: ping, DNS audit, and public IP lookup
+- System auditing: system profile, disk usage, and process inventory
+- Security operations: log scanning and SSH key auditing/generation
+- Infrastructure helpers: local config validation and cloud context inspection
 - REPL mode for guided execution
 
 ## Installation
@@ -45,6 +49,9 @@ If you prefer to run the script directly:
 python .\sentinelcli.py --help
 python .\sentinelcli.py repl
 ```
+
+`repl` opens the interactive Textual operator console. Use its command input
+to run normal CLI commands with flags, for example `crypto hash --text hello`.
 
 ## Quick start
 
@@ -249,7 +256,7 @@ python -m pip install pyinstaller
 pyinstaller --onefile --name sentinelcli .\sentinelcli.py
 ```
 
-The generated binary will appear in the `dist` directory.
+The generated binary will appear in the `release` directory.
 
 ## Release note
 

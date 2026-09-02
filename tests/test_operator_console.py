@@ -3,6 +3,7 @@ import unittest
 
 import sentinelcli
 from sentinel.core.command_system import CommandSystem
+from sentinel.core.command_hints import command_hints, positional_hints
 from sentinel.core.registry import CommandRegistry
 from sentinel.core.search_engine import SearchEngine
 from sentinel.core.task_manager import TaskManager
@@ -30,6 +31,23 @@ class OperatorConsoleTests(unittest.TestCase):
 
     def test_command_system_preserves_legacy_handler(self):
         self.assertEqual(CommandSystem(sentinelcli.build_parser()).registry.get("tls").name, "tls")
+
+    def test_command_hints_describe_and_validate_flags(self):
+        suggestions, flags = command_hints(sentinelcli.build_parser(), "crypto encrypt ")
+        self.assertFalse(suggestions)
+        method = next(flag for flag in flags if "--method" in flag.option)
+        self.assertTrue(method.input_required)
+        self.assertEqual(method.value_type, "string")
+        self.assertIsNotNone(method.validate(""))
+        self.assertIsNone(method.validate("general.base64"))
+
+    def test_command_hints_describe_required_positionals(self):
+        hints = positional_hints(sentinelcli.build_parser(), "ping ")
+        host = next(item for item in hints if item.name == "host")
+        self.assertTrue(host.required)
+        self.assertEqual(host.value_type, "string")
+        self.assertIsNotNone(host.validate(""))
+        self.assertIsNone(host.validate("127.0.0.1"))
 
 
 if __name__ == "__main__":
