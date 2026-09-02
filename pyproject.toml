@@ -4,11 +4,15 @@ version = "1.0.0"
 description = "A CLI cybersecurity toolkit for authorized defensive workflows."
 requires-python = ">=3.9"
 readme = "README.md"
-dependencies = []
+dependencies = [
+	"prompt-toolkit>=3.0.43",
+	"rich>=13.7",
+	"textual>=0.50",
+]
 
 [project.optional-dependencies]
 crypto = ["cryptography>=42"]
 
 [project.scripts]
-sentinelclipy = "sentinelclipy:main"
-sentinelcli = "sentinelclipy:main"
+sentinelclipy = "sentinelcli:main"
+sentinelcli = "sentinelcli:main"

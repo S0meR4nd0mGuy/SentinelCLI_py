@@ -3663,9 +3663,23 @@ def build_parser() -> argparse.ArgumentParser:
     ts.set_defaults(func=timestamp_cmd)
 
     repl = subparsers.add_parser("repl", help="Start an interactive toolkit shell.")
-    repl.set_defaults(func=lambda args: SentinelRepl(parser).cmdloop() or 0)
+    repl.add_argument("--legacy", action="store_true", help="Use the compatibility cmd-based guided shell.")
+    repl.set_defaults(func=lambda args: SentinelRepl(parser).cmdloop() if args.legacy else _run_textual_app(parser))
 
     return parser
+
+
+def _run_operator_repl(parser: argparse.ArgumentParser) -> int:
+    from sentinel.core.repl import OperatorRepl
+
+    return OperatorRepl(parser).run()
+
+
+def _run_textual_app(parser: argparse.ArgumentParser) -> int:
+    from sentinel.app import SentinelApp
+
+    SentinelApp(parser).run()
+    return 0
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
